@@ -1,0 +1,12 @@
+#!/bin/sh /etc/rc.common
+
+START=22
+
+start()
+{
+	if [ "`uci get wireless.@wifi-device[0].disabled`" == "1" ]; then
+		uci set wireless.@wifi-device[0].disabled=0
+		uci commit wireless
+		wifi
+	fi
+}

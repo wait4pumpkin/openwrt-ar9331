@@ -1,0 +1,64 @@
+﻿body {
+	margin: 0px;
+	padding: 0px;
+	overflow: hidden;
+	background-color: #e6e6e6;
+	font-size: 12px;
+}
+
+#header {
+	width:100%;
+	text-align: center;
+	background-image: url(images/header_bg.png);
+	background-repeat: repeat;
+	height:64px;
+}
+
+#headerbody {
+	margin-right: auto;
+	margin-left: auto;
+	text-align:left;
+	position:relative;
+}
+
+
+#headerbody .goback{
+	background-image: url(images/goback.png);
+	height: 64px;
+	width: 61px;
+	display: block;
+	position: absolute;
+	background-repeat: no-repeat;
+	background-position: center center;
+}
+
+#headerbody .title {
+	font-family: "黑体";
+	font-size: 18px;
+	line-height: 64px;
+	width:100%;
+	text-align:center;
+	position:absolute;
+}
+
+#content {
+	width:100%;
+}
+
+#contentbody {
+	margin-right: auto;
+	margin-left: auto;
+}
+
+#footer {
+	width: 100%;
+	text-align: center;
+	font-size: 12px;
+	line-height: 25px;
+	height: 80px;
+	padding-top: 20px;
+}
+
+#footer li {
+	list-style-type: none;	
+}

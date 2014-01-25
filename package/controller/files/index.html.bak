@@ -1,0 +1,186 @@
+﻿<!DOCTYPE html><HTML><HEAD>
+<META charset="utf-8">
+<META name="viewport" content="initial-scale=1.0, user-scalable=no">
+<META name="apple-mobile-web-app-capable" content="yes">
+<META name="apple-mobile-web-app-status-bar-style" content="black">
+<TITLE>海亚音乐</TITLE>
+<STYLE type="text/css">
+body {
+	margin: 0px;
+	padding: 0px;
+	overflow: hidden;
+}
+label {
+	line-height: 30px;
+}
+.textbox {
+	height: 30px;
+	border: 1px solid #aaaaaa;
+	line-height: 30px;
+	padding: 0px;
+	padding-left: 6px;
+	padding-right: 6px;
+}
+.selectbox {
+	line-height: 30px;
+	border: 1px solid #aaaaaa;
+	padding: 6px;
+}
+.row-header {
+	height: 30px;
+	line-height: 30px;
+	padding: 0px;
+	border-top-width: 1px;
+	border-right-width: 1px;
+	border-bottom-width: 1px;
+	border-left-width: 1px;
+	border-top-style: solid;
+	border-right-style: solid;
+	border-bottom-style: none;
+	border-left-style: solid;
+	border-top-color: #aaaaaa;
+	border-right-color: #aaaaaa;
+	border-bottom-color: #aaaaaa;
+	border-left-color: #aaaaaa;
+}
+.row-footer {
+	height: 30px;
+	line-height: 30px;
+	padding: 0px;
+	border-top-width: 1px;
+	border-right-width: 1px;
+	border-bottom-width: 1px;
+	border-left-width: 1px;
+	border-top-style: none;
+	border-right-style: solid;
+	border-bottom-style: solid;
+	border-left-style: solid;
+	border-top-color: #aaaaaa;
+	border-right-color: #aaaaaa;
+	border-bottom-color: #aaaaaa;
+	border-left-color: #aaaaaa;
+}
+.button {
+	height: 30px;
+	border: 1px solid #aaaaaa;
+	line-height: 30px;
+	padding: 0px;
+	margin-top: 20px;
+}
+#header {
+	background-color: #111111;
+	text-align: center;
+	line-height: 45px;
+	color: #FFF;
+	font-weight: bold;
+}
+#content {
+	margin-top: 20px;
+	margin-bottom: 20px;
+	margin-right: 0px;
+	margin-left: 0px;
+	padding-top: 0px;
+	padding-right: 10px;
+	padding-bottom: 0px;
+	padding-left: 10px;
+}
+</STYLE>
+
+<META name="GENERATOR" content="MSHTML 9.00.8112.16457"></HEAD>
+<BODY>
+<DIV id="header"> 海亚音乐 </DIV>
+<DIV id="content">
+<FORM method="POST" action="./cgi-bin/post.cgi" 
+data-ajax="true"><LABEL>音响网络</LABEL>
+<DIV class="row-header"><INPUT id="wifimode_ap" name="wifimode" value="ap" type="radio"><LABEL 
+for="wifimode_ap">热点模式</LABEL></DIV>
+<DIV class="row-footer"><INPUT id="wifimode_home" name="wifimode" value="home"  checked="checked"
+type="radio"><LABEL for="wifimode_home">无线网络</LABEL></DIV>
+<DIV id="attach"><LABEL>SSID</LABEL><INPUT id="ssid" class="textbox" name="ssid"  
+type="text">
+<LABEL>安全性</LABEL>
+<SELECT name="encryption" id="encryption" class="selectbox" onchange="encryptionSelected()"><OPTION 
+  value="NONE">Open</OPTION><OPTION value="WEP">WEP</OPTION><OPTION 
+  value="WPA">WPA</OPTION><OPTION selected="selected" 
+value="WPA2">WPA2</OPTION></SELECT>
+
+<LABEL id="pwd_label">密码</LABEL><INPUT id="pwd" class="textbox" 
+name="pwd" type="password"></DIV><INPUT id="submit" class="button" onclick="return submitCheck();" name="submit" value="保存" type="submit"></FORM>
+</DIV>
+<SCRIPT type="text/javascript">
+function addEvent(obj,event,fn){
+	if ( obj.addEventListener ) {
+		obj.addEventListener(event, fn, false );
+	} else if ( obj.attachEvent ) {
+		obj.attachEvent('on'+event, fn);
+	}
+}
+
+function resetSize(){
+	var maxw=600;
+	var bw=document.body.clientWidth;
+	var width=0;
+	
+	var content=document.getElementById("content");
+	if(bw>=maxw){
+		width=maxw-20;
+		content.style.width=width+"px";
+		content.style.marginLeft="auto";
+		content.style.marginRight="auto";
+	}else{
+		width=bw-20;
+		content.style.width=width+"px";
+	}
+	
+	
+	document.getElementById("ssid").style.width=(width-14)+"px";
+	document.getElementById("pwd").style.width=(width-14)+"px";
+	document.getElementById("encryption").style.width=(width)+"px";
+	document.getElementById("submit").style.width=width+"px";
+}
+function ready(){
+	resetSize();
+	var wifimode_ap=document.getElementById("wifimode_ap");
+	var wifimode_home=document.getElementById("wifimode_home");
+	var attach=document.getElementById("attach");
+	
+	addEvent(wifimode_ap,"click",function(){
+		attach.style.display="none";
+	});
+	
+	addEvent(wifimode_home,"click",function(){
+		attach.style.display="";
+	});
+}
+
+function encryptionSelected(){
+	var val=document.getElementById("encryption").value;
+	var pwd_label=document.getElementById("pwd_label");
+	var pwd=document.getElementById("pwd");
+	if(val=="NONE"){
+		pwd.value="";
+		pwd_label.style.display="NONE";
+		pwd.style.display="NONE";
+	}else{
+		pwd_label.style.display="";
+		pwd.style.display="";
+	}
+}
+
+function submitCheck(){
+	var wifimode=document.getElementById("wifimode_home");
+	if(wifimode.checked){
+		var ssid=document.getElementById("ssid");
+		if(ssid.value=="")
+		{
+			alert("请输入SSID");
+			return false;
+		}
+	}
+	
+	return true;
+}
+addEvent(window,"resize",resetSize);
+ready();
+</SCRIPT>
+</BODY></HTML>

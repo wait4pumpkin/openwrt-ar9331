@@ -1,0 +1,80 @@
+cmake_minimum_required(VERSION 2.6)
+
+
+PROJECT(ssid C)
+
+SET(CMAKE_INSTALL_PREFIX /usr)
+
+ADD_DEFINITIONS(-O2 -mips32r2 -mtune=mips32r2 -g3 -I. -DUCI_PREFIX="${CMAKE_INSTALL_PREFIX}")
+
+FILE(GLOB SOURCE "./wifi.c")
+ADD_EXECUTABLE(wifiController ${SOURCE})
+INSTALL(TARGETS wifiController
+	ARCHIVE DESTINATION lib
+	LIBRARY DESTINATION lib
+	RUNTIME DESTINATION sbin
+)
+
+FILE(GLOB SOURCE "./ether.c")
+ADD_EXECUTABLE(etherController ${SOURCE})
+INSTALL(TARGETS etherController
+	ARCHIVE DESTINATION lib
+	LIBRARY DESTINATION lib
+	RUNTIME DESTINATION sbin
+)
+
+
+FILE(GLOB SOURCE "./wifi-status.c" "./cJSON.c" "./utils.c")
+ADD_EXECUTABLE(wifi-status ${SOURCE})
+TARGET_LINK_LIBRARIES(wifi-status m)
+INSTALL(TARGETS wifi-status
+	ARCHIVE DESTINATION lib
+	LIBRARY DESTINATION lib
+	RUNTIME DESTINATION /www/cgi-bin
+)
+
+FILE(GLOB SOURCE "./wifi-set.c" "./cJSON.c" "./slre.c" "./utils.c")
+ADD_EXECUTABLE(wifi-set ${SOURCE})
+TARGET_LINK_LIBRARIES(wifi-set m)
+INSTALL(TARGETS wifi-set
+	ARCHIVE DESTINATION lib
+	LIBRARY DESTINATION lib
+	RUNTIME DESTINATION /www/cgi-bin
+)
+
+FILE(GLOB SOURCE "./ether-status.c" "./cJSON.c" "./utils.c")
+ADD_EXECUTABLE(ether-status ${SOURCE})
+TARGET_LINK_LIBRARIES(ether-status m)
+INSTALL(TARGETS ether-status
+	ARCHIVE DESTINATION lib
+	LIBRARY DESTINATION lib
+	RUNTIME DESTINATION /www/cgi-bin
+)
+
+FILE(GLOB SOURCE "./ether-set.c" "./cJSON.c" "./slre.c" "./utils.c")
+ADD_EXECUTABLE(ether-set ${SOURCE})
+TARGET_LINK_LIBRARIES(ether-set m)
+INSTALL(TARGETS ether-set
+	ARCHIVE DESTINATION lib
+	LIBRARY DESTINATION lib
+	RUNTIME DESTINATION /www/cgi-bin
+)
+
+FILE(GLOB SOURCE "./device-status.c" "./cJSON.c" "./utils.c")
+ADD_EXECUTABLE(device-status ${SOURCE})
+TARGET_LINK_LIBRARIES(device-status m)
+INSTALL(TARGETS device-status
+	ARCHIVE DESTINATION lib
+	LIBRARY DESTINATION lib
+	RUNTIME DESTINATION /www/cgi-bin
+)
+
+FILE(GLOB SOURCE "./device-reset.c" "./cJSON.c" "./utils.c")
+ADD_EXECUTABLE(device-reset ${SOURCE})
+TARGET_LINK_LIBRARIES(device-reset m)
+INSTALL(TARGETS device-status
+	ARCHIVE DESTINATION lib
+	LIBRARY DESTINATION lib
+	RUNTIME DESTINATION /www/cgi-bin
+)
+

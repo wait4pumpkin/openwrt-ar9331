@@ -1,0 +1,166 @@
+﻿<!DOCTYPE html>
+<HTML>
+<HEAD>
+<META charset="utf-8">
+<META name="viewport" content="initial-scale=1.0, user-scalable=no">
+<META name="apple-mobile-web-app-capable" content="yes">
+<META name="apple-mobile-web-app-status-bar-style" content="black">
+<META name="GENERATOR" content="MSHTML 9.00.8112.16457">
+<TITLE>小微</TITLE>
+<link href="style.css" rel="stylesheet" type="text/css">
+<script type="text/javascript" src="common.js"></script>
+<style type="text/css">
+.block {
+	background-color: #f2f2f2;
+	margin-bottom: 10px;
+	font-size: 12px;
+	padding-top: 20px;
+	padding-bottom: 20px;
+}
+.block li {
+	font-size: 12px;
+	line-height: 20px;
+	list-style-type: none;
+}
+.block li.title {
+	font-size: 18px;
+	line-height: 35px;
+	font-family: "黑体";
+}
+#button {
+	width: 100%;
+	height: 36px;
+	background-color: #5eb546;
+	border: 1px solid #67845f;
+}
+#networktype, #ppppoe_name, #ppppoe_password, #static_ip, #static_mask, #static_gw, #static_dns1, #static_dns2 {
+	border: 1px solid #999;
+	line-height: 25px;
+	height: 25px;
+	width: 160px;
+}
+</style>
+</HEAD>
+<BODY>
+<DIV id="header">
+  <div id="headerbody">
+    <div class="title">网络设置</div>
+    <a class="goback" href="index.html"></a></div>
+</DIV>
+<DIV id="content">
+  <div id="contentbody">
+    <div style="height:30px"></div>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" class="block">
+      <tr>
+        <td width="30%" align="center" valign="bottom">外网设置</td>
+        <td width="30%" align="center" valign="bottom"><img src="images/ico_pic.png" width="104" height="96"></td>
+        <td width="30%" align="center" valign="bottom">请选择您的上网方式</td>
+      </tr>
+    </table>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" class="block">
+      <tr>
+        <td align="center"><table width="100%" border="0" cellpadding="0" cellspacing="0">
+            <tr>
+              <td width="30%" height="35" align="right">上网接入方式</td>
+              <td width="20" align="left">&nbsp;</td>
+              <td align="left"><select name="networktype" id="networktype">
+                  <option selected="selected" value="pppoe">宽带拨号</option>
+                  <option value="dhcp">自动方式 (DHCP) </option>
+                  <option value="static">手动方式 (静态IP) </option>
+                </select></td>
+            </tr>
+          </table>
+          <table width="100%" border="0" cellpadding="0" cellspacing="0" id="display_pppoe" style="display:none">
+            <tr>
+              <td width="30%" height="35" align="right">帐号</td>
+              <td width="20" align="left">&nbsp;</td>
+              <td align="left"><input name="ppppoe_name" id="ppppoe_name" type="text" ></td>
+            </tr>
+            <tr>
+              <td height="35" align="right">密码</td>
+              <td align="left">&nbsp;</td>
+              <td align="left"><input name="ppppoe_password" id="ppppoe_password" type="password"></td>
+            </tr>
+            <tr>
+              <td height="35" align="right"></td>
+              <td align="left">&nbsp;</td>
+              <td align="left"><input name="ppppoe_display" id="ppppoe_display" type="checkbox" value="display">
+                <label for="display">显示</label></td>
+            </tr>
+          </table>
+          <table width="100%" border="0" cellpadding="0" cellspacing="0" id="display_dhcp" style="display:none">
+            <tr>
+              <td width="30%" height="35" align="right"></td>
+              <td width="20" align="left"></td>
+              <td align="left"></td>
+            </tr>
+          </table>
+          <table width="100%" border="0" cellpadding="0" cellspacing="0" id="display_static" style="display:">
+            <tr>
+              <td width="30%" height="35" align="right">IP 地址</td>
+              <td width="20" align="left">&nbsp;</td>
+              <td align="left"><input name="static_ip" id="static_ip" type="text" ></td>
+            </tr>
+            <tr>
+              <td height="35" align="right">子网掩码</td>
+              <td align="left">&nbsp;</td>
+              <td align="left"><input name="static_mask" id="static_mask" type="text" ></td>
+            </tr>
+            <tr>
+              <td height="35" align="right">网关</td>
+              <td align="left">&nbsp;</td>
+              <td align="left"><input name="static_gw" id="static_gw" type="text"></td>
+            </tr>
+            <tr>
+              <td height="35" align="right">DNS 地址</td>
+              <td align="left">&nbsp;</td>
+              <td align="left"><input name="static_dns1" id="static_dns1" type="text"></td>
+            </tr>
+            <tr>
+              <td height="35" align="right">DNS 地址</td>
+              <td align="left">&nbsp;</td>
+              <td align="left"><input name="static_dns2" id="static_dns2" type="text"></td>
+            </tr>
+          </table></td>
+      </tr>
+    </table>
+    <div style="height:30px"></div>
+    <input type="submit" name="button" id="button" value="保存设置" >
+  </div>
+</DIV>
+<DIV id="footer"><script type="text/javascript">writeFooter("D4EE0706B7C");</script></DIV>
+<SCRIPT type="text/javascript">
+function networktype_change(){
+	var networktype=document.getElementById("networktype");
+	var display_pppoe=document.getElementById("display_pppoe");
+	var display_dhcp=document.getElementById("display_dhcp");
+	var display_static=document.getElementById("display_static");
+	
+	display_pppoe.style.display="none";
+	display_dhcp.style.display="none";
+	display_static.style.display="none";
+	
+	if(networktype.value=="pppoe"){
+		display_pppoe.style.display="";
+	}else if(networktype.value=="dhcp"){
+		display_dhcp.style.display="";
+	}else if(networktype.value=="static"){
+		display_static.style.display="";
+	}
+}
+addEvent(window,"load",documentReady);
+addEvent(window,"resize",resetSize);
+addEvent(window,"load",networktype_change);
+addEvent(document.getElementById("networktype"),"change",networktype_change);
+addEvent(document.getElementById("ppppoe_display"),"click",function(){
+	var ppppoe_password=document.getElementById("ppppoe_password");
+	var val=ppppoe_password.value;
+	if(document.getElementById("ppppoe_display").checked){
+		ppppoe_password.outerHTML="<input name='ppppoe_password' id='ppppoe_password' type='text' value='"+val+"'>";
+	}else{
+		ppppoe_password.outerHTML="<input name='ppppoe_password' id='ppppoe_password' type='password' value='"+val+"'>";
+	}
+});
+</SCRIPT>
+</BODY>
+</HTML>
