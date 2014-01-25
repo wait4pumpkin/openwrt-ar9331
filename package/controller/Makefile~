@@ -37,16 +37,13 @@ define Build/Prepare
 endef
 
 
-define Package/ssid/install
+define Package/controller/install
 	$(INSTALL_DIR) $(1)/sbin
 	$(INSTALL_DIR) $(1)/etc
 	$(INSTALL_DIR) $(1)/etc/init.d
 	$(INSTALL_DIR) $(1)/etc/config
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/wifiController $(1)/sbin/
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/etherController $(1)/sbin/
-	$(CP) ./files/web.init $(1)/etc/init.d/web
-	$(CP) ./files/scan_wlan0.sh $(1)/etc/scan_wlan0
-	chmod 1777 $(1)/etc/scan_wlan0
 
 	$(INSTALL_DATA) ./files/info $(1)/etc/config/
 	$(INSTALL_DIR) $(1)/www

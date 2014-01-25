@@ -1,4 +1,0 @@
-config info
-	option hardware 'Media Device'
-	option version '0.6'
-

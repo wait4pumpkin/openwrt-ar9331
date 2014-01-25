@@ -27,7 +27,7 @@ TARGET_CFLAGS += -I$(STAGING_DIR)/usr/include
 
 TARGET_LDFLAGS += -L$(STAGING_DIR)/usr/lib
 
-define Package/ssid/description
+define Package/controller/description
 RESTful api for device control, including device info, wifi and ether configuration.
 endef
 
@@ -37,7 +37,7 @@ define Build/Prepare
 endef
 
 
-define Package/ssid/install
+define Package/controller/install
 	$(INSTALL_DIR) $(1)/sbin
 	$(INSTALL_DIR) $(1)/etc
 	$(INSTALL_DIR) $(1)/etc/init.d
@@ -56,4 +56,4 @@ define Package/ssid/install
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/device-reset $(1)/www/cgi-bin/device-reset.cgi
 endef
 
-$(eval $(call BuildPackage,ssid))
+$(eval $(call BuildPackage,controller))
