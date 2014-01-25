@@ -68,7 +68,7 @@ detect_mac80211() {
 
 		mode_11n=""
 		mode_band="g"
-		channel="11"
+		channel="6"
 		ht_cap=0
 		for cap in $(iw phy "$dev" info | grep 'Capabilities:' | cut -d: -f2); do
 			ht_cap="$(($ht_cap | $cap))"
@@ -76,7 +76,7 @@ detect_mac80211() {
 		ht_capab="";
 		[ "$ht_cap" -gt 0 ] && {
 			mode_11n="n"
-			append ht_capab "	option htmode	HT20" "$N"
+			append ht_capab "	option htmode	HT40+" "$N"
 
 			list="	list ht_capab"
 			[ "$(($ht_cap & 1))" -eq 1 ] && append ht_capab "$list	LDPC" "$N"
@@ -106,6 +106,9 @@ config wifi-device  radio$devidx
 	option hwmode	11${mode_11n}${mode_band}
 $dev_id
 $ht_capab
+	option country US
+	option noscan 1
+	option txpower 17
 	# REMOVE THIS LINE TO ENABLE WIFI:
 	option disabled 0
 
