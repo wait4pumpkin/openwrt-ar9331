@@ -46,7 +46,6 @@ define Package/controller/install
 
 	$(INSTALL_DIR) $(1)/usr
 	$(INSTALL_DIR) $(1)/usr/lib
-	$(INSTALL_DATA) $(PKG_BUILD_DIR)/libslre.so $(1)/usr/lib/
 	$(INSTALL_DATA) $(PKG_BUILD_DIR)/libcontrol.so $(1)/usr/lib/
 	
 	# $(INSTALL_BIN) $(PKG_BUILD_DIR)/wifiController $(1)/sbin/
@@ -57,8 +56,8 @@ define Package/controller/install
 	$(INSTALL_DIR) $(1)/www/cgi-bin
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/wifi-status $(1)/www/cgi-bin/wifi-status.cgi
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/wifi-set $(1)/www/cgi-bin/wifi-set.cgi
-	# $(INSTALL_BIN) $(PKG_BUILD_DIR)/ether-status $(1)/www/cgi-bin/ether-status.cgi
-	# $(INSTALL_BIN) $(PKG_BUILD_DIR)/ether-set $(1)/www/cgi-bin/ether-set.cgi
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/ether-status $(1)/www/cgi-bin/ether-status.cgi
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/ether-set $(1)/www/cgi-bin/ether-set.cgi
 	# $(INSTALL_BIN) $(PKG_BUILD_DIR)/device-status $(1)/www/cgi-bin/device-status.cgi
 	# $(INSTALL_BIN) $(PKG_BUILD_DIR)/device-reset $(1)/www/cgi-bin/device-reset.cgi
 endef

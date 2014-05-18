@@ -6,27 +6,37 @@
 
 int main(int argc, char *argv[]) {
 
-	cJSON *json = NULL;
+	FILE *f = fopen("/sys/class/net/eth0/address", "r");
+	char address[MAX_CONTENT];
+	fgets(address, MAX_CONTENT, f);
+	fclose(f);
 
+	json_object *json = json_object_new_object();
+	if (strlen(address) <= 0) {
+		serverErrorResponse("Unable to Get MAC address");
+		goto fail;
+	}
+	json_object_object_add(json, "mac", json_object_new_string(address));
+
+	UCIContext *ctx = uci_alloc_context();
 	const char *commands[] = { 
-								"ifconfig eth0 | tr -s ' ' | cut -d ' ' -f5", 
-								"uci show network.lan.proto | awk -F '=' '{print $2}'", 
-								"uci show network.lan.ipaddr | awk -F '=' '{print $2}'", 
-								"uci show network.lan.netmask | awk -F '=' '{print $2}'", 
+								"network.lan.proto", 
+								"network.lan.ipaddr", 
+								"network.lan.netmask", 
 								NULL
 							 };
-	const char *entrys[] = { "mac", "protocol", "ip", "netmask", NULL };
-
-	commandGetter(&json, commands, entrys);
+	const char *keys[] = { "protocol", "ip", "netmask", NULL };
+	if (statusGetter(json, ctx, commands, keys) < 0) goto uci_fail;
 
 	printf("Content-Type:application/json\n\n");
-	char *out = cJSON_Print(json);
-	cJSON_Minify(out);
-	printf("%s\n", out);
-	
+	printf("%s\n", json_object_get_string(json));
+
+uci_fail:	
+	uci_free_context(ctx);
+
+fail:
 	fflush(stdout);
-	cJSON_Delete(json);
-	free(out);
+	json_object_put(json);
 
 	return EXIT_SUCCESS;
 }

@@ -11,11 +11,13 @@ typedef struct uci_context UCIContext;
 
 typedef enum {
 	UCI_GET, 
-	UCI_SET
+	UCI_SET, 
+	UCI_COMMIT
 } UCICommand;
 
 extern UCIPtr* uci(UCIContext *ctx, const UCICommand cmd, const char *key);
 
+extern bool isVaildIP(const char *str);
 extern int statusGetter(json_object *json, UCIContext *ctx, const char *commands[], const char *keys[]);
 extern int statusSetter(UCIContext *ctx, const char *commands[], const char *values[]);
 extern void serverErrorResponse(const char *description);

@@ -8,7 +8,7 @@
 #include "slre.h"
 
 int main(int argc, char *argv[]) {
-    char *lengthStr = getenv("CONTENT_LENGTH"); 
+    const char *lengthStr = getenv("CONTENT_LENGTH"); 
     if (!lengthStr) {
         badRequestResponse("Request Invaild");
         return EXIT_SUCCESS;
@@ -79,17 +79,19 @@ int main(int argc, char *argv[]) {
                              };
     const char *values[] = { mode, name, encryption, password };
     UCIContext *ctx = uci_alloc_context();
-    if (statusSetter(ctx, commands, values) < 0) {
+    if (statusSetter(ctx, commands, values) < 0 || uci(ctx, UCI_COMMIT, "wireless") < 0) {
         goto uci_fail;
     }
 
     printf("Content-Type:application/json\n\n");
+    fflush(stdout);
+
+    // system("/etc/init.d/network restart");
 
 uci_fail:
     uci_free_context(ctx);
 
 fail:
-    fflush(stdout);
     json_object_put(json);
 
     return EXIT_SUCCESS;

@@ -3,8 +3,15 @@
 #include <string.h>
 
 #include "utils.h"
+#include "slre.h"
 
-extern UCIPtr* uci(UCIContext *ctx, UCICommand cmd, const char *str) {
+bool isVaildIP(const char *str) {
+	struct slre_cap caps[1];
+	return slre_match("^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$", 
+		   		str, strlen(str), caps, 1) > 0 && caps[0].len == strlen(str);
+}
+
+UCIPtr* uci(UCIContext *ctx, UCICommand cmd, const char *str) {
 	char *key = strdup(str);
 	UCIPtr *ptr = (UCIPtr *)malloc(sizeof(UCIPtr));
 	if (uci_lookup_ptr(ctx, ptr, key, true) != UCI_OK) goto fail;
@@ -15,6 +22,9 @@ extern UCIPtr* uci(UCIContext *ctx, UCICommand cmd, const char *str) {
 
 		ret = uci_save(ctx, ptr->p);
 		if (ret != UCI_OK) goto fail;	
+	} else if (cmd == UCI_COMMIT) {
+		int ret = uci_commit(ctx, &ptr->p, false);
+		if (ret != UCI_OK) goto fail;
 	}
 
 	free(key);
@@ -45,7 +55,8 @@ int statusSetter(UCIContext *ctx, const char *commands[], const char *values[]) 
 	int i = 0;
 	char key[MAX_FIELD + MAX_FIELD];
 	for (; commands[i]; ++i) {
-		strlcpy(key, commands[i], MAX_FIELD << 1);
+		strlcpy(key, commands[i], (MAX_FIELD << 1) - 2);
+		strncat(key, "=", 1);
 		strncat(key, values[i], MAX_FIELD);
 		UCIPtr *ptr = uci(ctx, UCI_SET, key);
 		if (!ptr) goto fail;

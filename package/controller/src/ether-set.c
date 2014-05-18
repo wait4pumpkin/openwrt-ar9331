@@ -6,148 +6,150 @@
 
 #include "utils.h"
 #include "slre.h"
-#include "ether.h"
-
-EtherProtocol checkProtocol(const char *str);
 
 int main(int argc, char *argv[]) {
-	static const int MAX_CONTENT = 256;
-	
-	const char *lengthStr = getenv("CONTENT_LENGTH");
-	if (!lengthStr) {
-		badRequestResponse("Invaild Request");
-		return EXIT_SUCCESS;
-	}
+    const char *lengthStr = getenv("CONTENT_LENGTH"); 
+    if (!lengthStr) {
+        badRequestResponse("Request Invaild");
+        return EXIT_SUCCESS;
+    }
 
-	const size_t length = atoi(lengthStr);
-	char content[MAX_CONTENT];
-	fgets(content, min(MAX_CONTENT, length + 1), stdin);
+    const size_t length = atoi(lengthStr);
+    char content[MAX_CONTENT];
+    fgets(content, min(length + 1, MAX_CONTENT), stdin);
+    
+    json_object *json = json_tokener_parse(content);
+    UCIContext *ctx = uci_alloc_context();
+    if (!json) {
+        badRequestResponse("Invaild JSON");
+        goto fail;
+    }
 
-	cJSON *json = cJSON_Parse(content);
-	if (!json) {
-		badRequestResponse("Invaild JSON");
-		return EXIT_SUCCESS;
-	}
+    json_object *value = NULL;
+    json_bool ret = json_object_object_get_ex(json, "mode", &value);
+    if (!ret) {
+        badRequestResponse("Incomplete Arguments");
+        goto fail;
+    }
+    const char *mode = json_object_get_string(value);
+    if (!strcmp(mode, "static")) {
+        ret = json_object_object_get_ex(json, "ip", &value);
+        if (!ret) {
+            badRequestResponse("Incomplete Arguments");
+            goto fail;
+        }
+        const char *ip = json_object_get_string(value);
+        if (!isVaildIP(ip)) {
+            badRequestResponse("Invaild Argument: ip");
+            goto fail;
+        }
 
-	EtherRequest request;
+        ret = json_object_object_get_ex(json, "netmask", &value);
+        if (!ret) {
+            badRequestResponse("Incomplete Arguments");
+            goto fail;
+        }
+        const char *netmask = json_object_get_string(value);
+        if (!isVaildIP(netmask)) {
+            badRequestResponse("Invaild Argument: netmask");
+            goto fail;
+        }
 
-	const char *protocol = cJSON_GetObjectItem(json, "mode")->valuestring;
-	request.protocol = checkProtocol(protocol);
-	if (request.protocol < PROTOCOL_BASE || request.protocol >= NUM_PROTOCOL) {
-		badRequestResponse("Invaild Argument: protocol");
-		return EXIT_SUCCESS;
-	}
+        ret = json_object_object_get_ex(json, "gateway", &value);
+        if (!ret) {
+            badRequestResponse("Incomplete Arguments");
+            goto fail;
+        }
+        const char *gateway = json_object_get_string(value);
+        if (!isVaildIP(gateway)) {
+            badRequestResponse("Invaild Argument: gateway");
+            goto fail;
+        }
 
-	int sock = socket(PF_UNIX, SOCK_STREAM, 0);
-	if (sock < 0) {
-		serverErrorResponse("Service Not Response");
-		return EXIT_SUCCESS;
-	}
+        ret = json_object_object_get_ex(json, "dnsA", &value);
+        if (!ret) {
+            badRequestResponse("Incomplete Arguments");
+            goto fail;
+        }
+        const char *dnsA = json_object_get_string(value);
+        if (!isVaildIP(dnsA)) {
+            badRequestResponse("Invaild Argument: dnsA");
+            goto fail;
+        }
 
-	struct sockaddr_un addr;
-	bzero(&addr, sizeof(struct sockaddr_un));
-	addr.sun_family = AF_UNIX;
-	snprintf(addr.sun_path, UNIX_PATH_MAX, ETHER_SOCKET_DOMAIN);
+        ret = json_object_object_get_ex(json, "dnsB", &value);
+        if (!ret) {
+            badRequestResponse("Incomplete Arguments");
+            goto fail;
+        }
+        const char *dnsB = json_object_get_string(value);
+        if (!isVaildIP(dnsB)) {
+            badRequestResponse("Invaild Argument: dnsB");
+            goto fail;
+        }
 
-	if (connect(sock, (struct sockaddr *)&addr, sizeof(struct sockaddr_un))) {
-		serverErrorResponse("Service Not Response");
-		return EXIT_SUCCESS;
-	}
+        const char *commands[] = { 
+                                    "network.lan.proto", 
+                                    "network.lan.ipaddr", 
+                                    "network.lan.netmask", 
+                                    "network.lan.gateway", 
+                                    "network.lan.dns", 
+                                    NULL
+                                 };
+        const char *values[] = { mode, ip, netmask, gateway, dnsA, NULL };
+        if (statusSetter(ctx, commands, values) < 0 || uci(ctx, UCI_COMMIT, "network.lan")) goto fail;
 
-	if (request.protocol == PROTOCOL_DHCP) {
-		write(sock, (char *)&request, sizeof(EtherRequest));
-	} else if (request.protocol == PROTOCOL_STATIC) {
-		const char *ip = cJSON_GetObjectItem(json, "ip")->valuestring;
-		const char *netmask = cJSON_GetObjectItem(json, "netmask")->valuestring;
-		const char *gateway = cJSON_GetObjectItem(json, "gateway")->valuestring;
-		const char *dnsA = cJSON_GetObjectItem(json, "dnsA")->valuestring;
-		const char *dnsB = cJSON_GetObjectItem(json, "dnsB")->valuestring;
+    } else if (!strcmp(mode, "dhcp")) {
+        const char *commands[] = { 
+                                    "network.lan.proto", 
+                                    NULL
+                                 };
+        const char *values[] = { mode, NULL };
+        if (statusSetter(ctx, commands, values) < 0 || uci(ctx, UCI_COMMIT, "network.lan")) goto fail;
 
-		if (!ip || !netmask || !gateway || !dnsA || !dnsB) {
-			badRequestResponse("Arguments Not Complete");
-			return EXIT_SUCCESS;
-		}
+    } else if (!strcmp(mode, "pppoe")) {
+        ret = json_object_object_get_ex(json, "username", &value);
+        if (!ret) {
+            badRequestResponse("Incomplete Arguments");
+            goto fail;
+        }
+        const char *username = json_object_get_string(value);
+        if (strlen(username) > MAX_CONTENT) {
+            badRequestResponse("Invaild Argument: username");
+            goto fail;
+        }
 
-		struct slre_cap caps[1];
-		if (slre_match("^(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3})", ip, strlen(ip), caps, 1) > 0 && caps[0].len == strlen(ip)) {
-			strncpy(request.ip, ip, sizeof(request.ip));
-		} else {
-			badRequestResponse("Invaild Argument: ip");
-			return EXIT_SUCCESS;
-		}
+        ret = json_object_object_get_ex(json, "password", &value);
+        if (!ret) {
+            badRequestResponse("Incomplete Arguments");
+            goto fail;
+        }
+        const char *password = json_object_get_string(value);
+        if (strlen(password) > MAX_CONTENT) {
+            badRequestResponse("Invaild Argument: password");
+            goto fail;
+        }
 
-		if (slre_match("^(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3})", netmask, strlen(netmask), caps, 1) > 0 && caps[0].len == strlen(netmask)) {
-			strncpy(request.netmask, netmask, sizeof(request.netmask));
-		} else {
-			badRequestResponse("Invaild Argument: netmask");
-			return EXIT_SUCCESS;
-		}
+        const char *commands[] = { 
+                                    "network.lan.proto", 
+                                    "network.wan.username", 
+                                    "network.wan.password", 
+                                    NULL
+                                 };
+        const char *values[] = { mode, username, password, NULL };
+        if (statusSetter(ctx, commands, values) < 0 || uci(ctx, UCI_COMMIT, "network.wan")) goto fail;
 
-		if (slre_match("^(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3})", gateway, strlen(gateway), caps, 1) > 0 && caps[0].len == strlen(gateway)) {
-			strncpy(request.gateway, gateway, sizeof(request.gateway));
-		} else {
-			badRequestResponse("Invaild Argument: gateway");
-			return EXIT_SUCCESS;
-		}
+    } else {
+        badRequestResponse("Invaild Argument: mode");
+        goto fail;
+    }
+    
+    printf("Content-Type:application/json\n\n");
+    fflush(stdout);
 
-		if (slre_match("^(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3})", dnsA, strlen(dnsA), caps, 1) > 0 && caps[0].len == strlen(dnsA)) {
-			strncpy(request.dnsA, dnsA, sizeof(request.dnsA));
-		} else {
-			badRequestResponse("Invaild Argument: dnsA");
-			return EXIT_SUCCESS;
-		}
+fail:
+    uci_free_context(ctx);
+    json_object_put(json);
 
-		if (slre_match("^(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3})", dnsB, strlen(dnsB), caps, 1) > 0 && caps[0].len == strlen(dnsB)) {
-			strncpy(request.dnsB, dnsB, sizeof(request.dnsB));
-		} else {
-			badRequestResponse("Invaild Argument: dnsB");
-			return EXIT_SUCCESS;
-		}
-
-		write(sock, (char *)&request, sizeof(EtherRequest));
-	} else if (request.protocol == PROTOCOL_PPPOE) {
-		const char *username = cJSON_GetObjectItem(json, "username")->valuestring;
-		const char *password = cJSON_GetObjectItem(json, "password")->valuestring;
-
-		if (!username || !password) {
-			badRequestResponse("Arguments Not Complete");
-			return EXIT_SUCCESS;
-		}
-
-		struct slre_cap caps[1];
-		if (slre_match("^([a-zA-Z0-9 -]+)", username, strlen(username), caps, 1) > 0 && caps[0].len == strlen(username)) {
-			strncpy(request.username, username, sizeof(request.username));
-		} else {
-			badRequestResponse("Invaild Argument: username");
-			return EXIT_SUCCESS;
-		}
-
-		// Passwork without check
-		if (strlen(password) < sizeof(request.password) - 2) {
-			strncpy(request.password, password, sizeof(request.password));
-		} else {
-			badRequestResponse("Invaild Argument: password");
-			return EXIT_SUCCESS;
-		}
-
-		write(sock, (char *)&request, sizeof(EtherRequest));
-	}
-
-	printf("Content-Type:application/json\n\n");
-	close(sock);
-	cJSON_Delete(json);
-
-	fflush(stdout);
-
-	return EXIT_SUCCESS;
+    return EXIT_SUCCESS;
 }
-
-EtherProtocol checkProtocol(const char *str) {
-	const char *vaild[] = { "static", "dhcp", "pppoe" };
-	int i = PROTOCOL_BASE;
-	for (; i<NUM_PROTOCOL; ++i) {
-		if (!strcmp(vaild[i], str)) return i;
-	}
-	return PROTOCOL_BASE - 1;
-}
-
