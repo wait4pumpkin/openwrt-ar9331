@@ -37,9 +37,10 @@ TARGET_LINK_LIBRARIES(ether-set control uci json-c)
 #FILE(GLOB SOURCE "./device-reset.c" "./utils.c")
 #ADD_EXECUTABLE(device-reset ${SOURCE})
 #TARGET_LINK_LIBRARIES(device-reset m)
-#INSTALL(TARGETS device-status
-#	ARCHIVE DESTINATION lib
-#	LIBRARY DESTINATION lib
-#	RUNTIME DESTINATION /www/cgi-bin
-#)#
+
+INSTALL(TARGETS
+	ARCHIVE DESTINATION lib
+	LIBRARY DESTINATION lib
+	RUNTIME DESTINATION /www/cgi-bin
+)
 
