@@ -6,26 +6,25 @@
 
 int main(int argc, char *argv[]) {
 
-	cJSON *json = NULL;
+	json_object *json = json_object_new_object();
+	UCIContext *ctx = uci_alloc_context();
 
 	const char *commands[] = { 
-								"uci show wireless.@wifi-iface[0].ssid | awk -F '=' '{print $2}'", 
-								"uci show wireless.@wifi-iface[0].encryption | awk -F '=' '{print $2}'", 
-								"uci show wireless.radio0.channel | awk -F '=' '{print $2}'", 
+								"wireless.@wifi-iface[0].ssid", 
+								"wireless.@wifi-iface[0].encryption", 
+								"wireless.radio0.channel", 
 								NULL
 							 };
-	const char *entrys[] = { "name", "encryption", "channel", NULL };
-
-	commandGetter(&json, commands, entrys);
+	const char *keys[] = { "name", "encryption", "channel", NULL };
+	if (statusGetter(json, ctx, commands, keys) < 0) goto fail;
 
 	printf("Content-Type:application/json\n\n");
-	char *out = cJSON_Print(json);
-	cJSON_Minify(out);
-	printf("%s\n", out);
-	
+	printf("%s\n", json_object_get_string(json));
+
+fail:	
 	fflush(stdout);
-	cJSON_Delete(json);
-	free(out);
+	uci_free_context(ctx);
+	json_object_put(json);
 
 	return EXIT_SUCCESS;
 }

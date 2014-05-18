@@ -4,66 +4,84 @@
 
 #include "utils.h"
 
-int commandGetter(cJSON **jsonRef, const char *commands[], const char *entrys[]) {
-	cJSON *json = *jsonRef;
+extern UCIPtr* uci(UCIContext *ctx, UCICommand cmd, const char *str) {
+	char *key = strdup(str);
+	UCIPtr *ptr = (UCIPtr *)malloc(sizeof(UCIPtr));
+	if (uci_lookup_ptr(ctx, ptr, key, true) != UCI_OK) goto fail;
 
+	if (cmd == UCI_SET) {
+		int ret = uci_set(ctx, ptr);
+		if (ret != UCI_OK) goto fail;
+
+		ret = uci_save(ctx, ptr->p);
+		if (ret != UCI_OK) goto fail;	
+	}
+
+	free(key);
+	return ptr;
+
+fail:
+	free(key);
+	free(ptr);
+	return NULL;
+};
+
+int statusGetter(json_object *json, UCIContext *ctx, const char *commands[], const char *keys[]) {
 	int i = 0;
 	for (; commands[i]; ++i) {
-		FILE *cmd = popen(commands[i], "r");
-	    if (!cmd) {
-			printf("Status: 500 Internal Server Error\n");
-
-			if (json) cJSON_Delete(json);
-			json = cJSON_CreateObject();
-			cJSON_AddItemToObject(json, "status", cJSON_CreateString("fail"));
-			cJSON_AddItemToObject(json, "description", cJSON_CreateString("server failed to invoke command"));
-
-			*jsonRef = json;
-			return -1;
-    	} else {
-			if (!json) json = cJSON_CreateObject();
-	    	char str[128];
-			if (fgets(str, sizeof(str), cmd) != NULL) {
-				if (str[strlen(str) - 1] == '\n') {
-    		        str[strlen(str) - 1] = '\0';
-	    	    }
-				cJSON_AddItemToObject(json, entrys[i], cJSON_CreateString(str));
-			}
-	    	pclose(cmd);
-		}
+		UCIPtr *ptr = uci(ctx, UCI_GET, commands[i]);
+		if (!ptr) goto fail;
+		json_object_object_add(json, keys[i], json_object_new_string(ptr->o->v.string));
+		free(ptr);
 	}
-	*jsonRef = json;
 	return 0;
+
+fail:
+	serverErrorResponse("Failed to Fetch Data");
+	return -1;
+}
+
+int statusSetter(UCIContext *ctx, const char *commands[], const char *values[]) {
+	int i = 0;
+	char key[MAX_FIELD + MAX_FIELD];
+	for (; commands[i]; ++i) {
+		strlcpy(key, commands[i], MAX_FIELD << 1);
+		strncat(key, values[i], MAX_FIELD);
+		UCIPtr *ptr = uci(ctx, UCI_SET, key);
+		if (!ptr) goto fail;
+		free(ptr);
+	}
+	return 0;
+
+fail:
+	serverErrorResponse("Failed to Fetch Data");
+	return -1;
 }
 
 void badRequestResponse(const char *description) {
 	printf("Status: 400 Bad Request\n");
-	printf("Content-Type:application/json\n\n");
+	printf("Content-Type: application/json\n\n");
 
-	cJSON *json = cJSON_CreateObject();
-	cJSON_AddItemToObject(json, "status", cJSON_CreateString("fail"));
-	cJSON_AddItemToObject(json, "description", cJSON_CreateString(description));
+	json_object *json = json_object_new_object();
+	json_object_object_add(json, "status", json_object_new_string("fail"));
+	json_object_object_add(json, "description", json_object_new_string(description));
 
-	char *out = cJSON_Print(json);
-	cJSON_Minify(out);
-	printf("%s\n", out);
+	printf("%s\n", json_object_get_string(json));
 	
 	fflush(stdout);
-	cJSON_Delete(json);
+	json_object_put(json);
 }
 
 void serverErrorResponse(const char *description) {
 	printf("Status: 500 Internal Server Error\n");
-	printf("Content-Type:application/json\n\n");
+	printf("Content-Type: application/json\n\n");
 
-	cJSON *json = cJSON_CreateObject();
-	cJSON_AddItemToObject(json, "status", cJSON_CreateString("fail"));
-	cJSON_AddItemToObject(json, "description", cJSON_CreateString(description));
+	json_object *json = json_object_new_object();
+	json_object_object_add(json, "status", json_object_new_string("fail"));
+	json_object_object_add(json, "description", json_object_new_string(description));
 
-	char *out = cJSON_Print(json);
-	cJSON_Minify(out);
-	printf("%s\n", out);
+	printf("%s\n", json_object_get_string(json));
 	
 	fflush(stdout);
-	cJSON_Delete(json);
+	json_object_put(json);
 }

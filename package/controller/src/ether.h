@@ -7,8 +7,17 @@
 #define CMD_STA			2
 #define ETHER_SOCKET_DOMAIN	"/tmp/ether.socket"
 
+#define PROTOCOL_BASE 0
+
+typedef enum {
+	PROTOCOL_STATIC = PROTOCOL_BASE, 
+	PROTOCOL_DHCP, 
+	PROTOCOL_PPPOE, 
+	NUM_PROTOCOL
+} EtherProtocol;
+
 typedef struct {
-	char protocol[64];
+	EtherProtocol protocol;
 	char username[64];
 	char password[64];
 	char ip[64];

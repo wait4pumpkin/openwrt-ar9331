@@ -8,12 +8,12 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=lighttpd
-PKG_VERSION:=1.4.32
+PKG_VERSION:=1.4.35
 PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
 PKG_SOURCE_URL:=http://download.lighttpd.net/lighttpd/releases-1.4.x
-PKG_MD5SUM:=e5a6f57fc371a10646ff1a57056fa9c0
+PKG_MD5SUM:=c7ae774eab4cb7ac85e41b712f4ee9ba
 
 PKG_LICENSE:=BSD-3c
 PKG_LICENSE_FILES:=COPYING
@@ -154,7 +154,7 @@ $(eval $(call BuildPlugin,alias,Directory alias,,10))
 $(eval $(call BuildPlugin,auth,Authentication,,05))
 $(eval $(call BuildPlugin,cgi,CGI,,10))
 $(eval $(call BuildPlugin,cml,Cache Meta Language,,10))
-$(eval $(call BuildPlugin,compress,Compress output,+zlib,10))
+$(eval $(call BuildPlugin,compress,Compress output,+PACKAGE_lighttpd-mod-compress:zlib,10))
 $(eval $(call BuildPlugin,evasive,Evasive,,10))
 $(eval $(call BuildPlugin,evhost,Exnhanced Virtual-Hosting,,10))
 $(eval $(call BuildPlugin,expire,Expire,,10))
@@ -162,10 +162,10 @@ $(eval $(call BuildPlugin,extforward,Extract client,,10))
 $(eval $(call BuildPlugin,fastcgi,FastCGI,,10))
 $(eval $(call BuildPlugin,flv_streaming,FLV streaming,,10))
 $(eval $(call BuildPlugin,magnet,Magnet,,10))
-$(eval $(call BuildPlugin,mysql_vhost,Mysql virtual hosting,+libmysqlclient,10))
+$(eval $(call BuildPlugin,mysql_vhost,Mysql virtual hosting,+PACKAGE_lighttpd-mod-mysql_vhost:libmysqlclient,10))
 $(eval $(call BuildPlugin,proxy,Proxy,,10))
-$(eval $(call BuildPlugin,redirect,URL redirection,+libpcre,10))
-$(eval $(call BuildPlugin,rewrite,URL rewriting,+libpcre,10))
+$(eval $(call BuildPlugin,redirect,URL redirection,+PACKAGE_lighttpd-mod-redirect:libpcre,10))
+$(eval $(call BuildPlugin,rewrite,URL rewriting,+PACKAGE_lighttpd-mod-rewrite:libpcre,10))
 $(eval $(call BuildPlugin,rrdtool,RRDtool,,10))
 $(eval $(call BuildPlugin,scgi,SCGI,,10))
 $(eval $(call BuildPlugin,secdownload,Secure and fast download,,10))
@@ -173,8 +173,8 @@ $(eval $(call BuildPlugin,setenv,Environment variable setting,,10))
 $(eval $(call BuildPlugin,simple_vhost,Simple virtual hosting,,10))
 $(eval $(call BuildPlugin,ssi,SSI,+libpcre,10))
 $(eval $(call BuildPlugin,status,Server status display,,10))
-$(eval $(call BuildPlugin,trigger_b4_dl,Trigger before download,+libpcre,10))
+$(eval $(call BuildPlugin,trigger_b4_dl,Trigger before download,+PACKAGE_lighttpd-mod-trigger_b4_dl:libpcre,10))
 $(eval $(call BuildPlugin,userdir,User directory,,10))
 $(eval $(call BuildPlugin,usertrack,User tracking,,10))
-$(eval $(call BuildPlugin,webdav,WebDAV,+libsqlite3 +libuuid +libxml2,10))
+$(eval $(call BuildPlugin,webdav,WebDAV,+PACKAGE_lighttpd-mod-webdav:libsqlite3 +PACKAGE_lighttpd-mod-webdav:libuuid +PACKAGE_lighttpd-mod-webdav:libxml2,10))
 

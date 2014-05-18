@@ -4,6 +4,8 @@
 #include <sys/un.h>
 #include <unistd.h>
 
+#include <uci.h>
+
 #include "ether.h"
 
 static int initServer(void);
@@ -54,14 +56,16 @@ static void handleClient(int conn, EtherRequest *request) {
 	length = read(conn, (char *)request, sizeof(EtherRequest));
 	if (length < 0) return;
 
-	close(conn);
+	char *key = strdup("wireless.@wifi-iface[0].ssid");
+	struct uci_context *context = uci_alloc_context();
+	struct uci_ptr p;
+	if (uci_lookup_ptr(context, &p, key, true) != UCI_OK) return;
 
-	// if (CMD_STA == request->cmd) {
-	// 	snprintf(cmdline, sizeof(cmdline), "/etc/scan_wlan0 -sta \"%s\" \"%s\" \"%s\"", request->name, request->encryption, request->pws);
-	// 	system(cmdline);
-	// } else if (CMD_AP == request->cmd) {
-	// 	snprintf(cmdline, sizeof(cmdline), "/etc/scan_wlan0 -ap");
-	// 	system(cmdline);
-	// }
+	printf("%s\n", p.value);
+
+	uci_free_context(context);
+	free(key);
+
+	close(conn);
 }
 

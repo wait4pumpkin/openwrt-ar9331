@@ -6,89 +6,91 @@
 
 #include "utils.h"
 #include "slre.h"
-#include "wifi.h"
 
 int main(int argc, char *argv[]) {
+    char *lengthStr = getenv("CONTENT_LENGTH"); 
+    if (!lengthStr) {
+        badRequestResponse("Request Invaild");
+        return EXIT_SUCCESS;
+    }
+    
+    const size_t length = atoi(lengthStr);
+    char content[MAX_CONTENT];
+    fgets(content, min(length + 1, MAX_CONTENT), stdin);
+    
+    json_object *json = json_tokener_parse(content);
+    if (!json) {
+        badRequestResponse("Invaild JSON");
+        goto fail;
+    }
 
-	printf("Content-Type:application/json\n\n");
-	
-	char *lengthStr = getenv("CONTENT_LENGTH");	
-	if (lengthStr != NULL) {
-		int length = atoi(lengthStr);
-		char content[256];
-		fgets(content, length + 1, stdin);
-	
-		cJSON *json = cJSON_Parse(content);
-		if (!json) {
-			badRequestResponse("Invaild JSON");
-			return EXIT_SUCCESS;
-		} else {
-			WifiRequest request;
+    json_object *value = NULL;
+    json_bool ret = json_object_object_get_ex(json, "mode", &value);
+    if (!ret) {
+        badRequestResponse("Incomplete Arguments");
+        goto fail;
+    }
+    const char *mode = json_object_get_string(value);
+    if (!strcmp(mode, "sta") && !strcmp(mode, "ap")) {
+        badRequestResponse("Invaild Argument: mode");
+        goto fail;
+    }
 
-			const char *mode = cJSON_GetObjectItem(json, "mode")->valuestring;
-			const char *name = cJSON_GetObjectItem(json, "name")->valuestring;
-			const char *encryption = cJSON_GetObjectItem(json, "encryption")->valuestring;
-			const char *pws = cJSON_GetObjectItem(json, "password")->valuestring;
+    ret = json_object_object_get_ex(json, "name", &value);
+    if (!ret) {
+        badRequestResponse("Incomplete Arguments");
+        goto fail;
+    }
+    const char *name = json_object_get_string(value);
+    struct slre_cap caps[1];
+    if (!(slre_match("^([a-zA-Z0-9 -]+)", name, strlen(name), caps, 1) > 0 && caps[0].len == strlen(name))) {
+        badRequestResponse("Invaild Argument: name");
+        goto fail;
+    }
 
-			if (!strcmp(mode, "sta")) {
-				request.cmd = CMD_STA;
-			} else if (!strcmp(mode, "ap")) {
-				request.cmd = CMD_AP;
-			} else {
-				badRequestResponse("Invaild Argument: mode");
-				return EXIT_SUCCESS;
-			}
+    ret = json_object_object_get_ex(json, "encryption", &value);
+    if (!ret) {
+        badRequestResponse("Incomplete Arguments");
+        goto fail;
+    }
+    const char *encryption = json_object_get_string(value);
+    if (strcmp(encryption, "none") && strcmp(encryption, "psk") && strcmp(encryption, "psk2") && strcmp(encryption, "wep")) {
+        badRequestResponse("Invaild Argument: encryption");
+        goto fail;
+    }
 
-			if (!name || !encryption || !pws) {
-				badRequestResponse("Arguments Not Complete");
-				return EXIT_SUCCESS;
-			}
+    ret = json_object_object_get_ex(json, "password", &value);
+    if (!ret) {
+        badRequestResponse("Incomplete Arguments");
+        goto fail;
+    }
+    const char *password = json_object_get_string(value);
+    if (strlen(password) > MAX_FIELD) {
+        badRequestResponse("Invaild Argument: password");
+        return EXIT_SUCCESS;
+    }
 
-			struct slre_cap caps[1];
-    		if (slre_match("^([a-zA-Z0-9 -]+)", name, strlen(name), caps, 1) > 0 && caps[0].len == strlen(name)) {
-             	strncpy(request.name, name, sizeof(request.name));
-			} else {
-				badRequestResponse("Invaild Argument: name");
-				return EXIT_SUCCESS;
-			}
-			
-			if (!strcmp(encryption, "none") || !strcmp(encryption, "psk") || !strcmp(encryption, "psk2") || !strcmp(encryption, "wep")) {
-				strncpy(request.encryption, encryption, sizeof(request.encryption));
-			} else {
-				badRequestResponse("Invaild Argument: encryption");
-				return EXIT_SUCCESS;
-			}
+    const char *commands[] = { 
+                                "wireless.@wifi-iface[0].mode", 
+                                "wireless.@wifi-iface[0].ssid", 
+                                "wireless.@wifi-iface[0].encryption", 
+                                "wireless.@wifi-iface[0].key", 
+                                NULL
+                             };
+    const char *values[] = { mode, name, encryption, password };
+    UCIContext *ctx = uci_alloc_context();
+    if (statusSetter(ctx, commands, values) < 0) {
+        goto uci_fail;
+    }
 
-			if (strlen(pws) < sizeof(request.pws)) {
-				strncpy(request.pws, pws, sizeof(request.pws));
-			} else {
-				badRequestResponse("Invaild Argument: password");
-				return EXIT_SUCCESS;
-			}
+    printf("Content-Type:application/json\n\n");
 
-			int sock = socket(PF_UNIX, SOCK_STREAM, 0);
-			if (sock < 0) {
-				serverErrorResponse("Service Not Response");
-				return EXIT_SUCCESS;
-			}
+uci_fail:
+    uci_free_context(ctx);
 
-			struct sockaddr_un addr;
-			bzero(&addr, sizeof(struct sockaddr_un));
-			addr.sun_family = AF_UNIX;
-			snprintf(addr.sun_path, UNIX_PATH_MAX, SOCKET_DOMAIN);
-		
-			if (connect(sock, (struct sockaddr *)&addr, sizeof(struct sockaddr_un))) {
-				serverErrorResponse("Service Not Response");
-				return EXIT_SUCCESS;
-			}
-			write(sock, (char *)&request, sizeof(WifiRequest));
-		
-			close(sock);
-			cJSON_Delete(json);
-		}
-	}
+fail:
+    fflush(stdout);
+    json_object_put(json);
 
-	fflush(stdout);
-
-	return EXIT_SUCCESS;
+    return EXIT_SUCCESS;
 }
