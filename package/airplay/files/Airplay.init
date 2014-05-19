@@ -1,0 +1,19 @@
+#!/bin/sh /etc/rc.common
+
+START=72
+
+start_stop() {
+	start-stop-daemon $1 -b -m -p /var/run/Airplay.pid -x /sbin/Airplay
+}
+
+start() {
+	start_stop -S
+}
+
+reload() {
+	return
+}
+
+stop() {
+	start_stop -K
+}
