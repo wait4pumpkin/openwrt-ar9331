@@ -1,0 +1,1 @@
+/usr/bin/cc      CMakeFiles/upnpdevice.dir/UpnpAVTransportService.c.o CMakeFiles/upnpdevice.dir/UpnpMediaPlayer.c.o CMakeFiles/upnpdevice.dir/UpnpConnectionManagerService.c.o CMakeFiles/upnpdevice.dir/upnpdevice.c.o CMakeFiles/upnpdevice.dir/UpnpRenderingControlService.c.o  -o upnpdevice -rdynamic 

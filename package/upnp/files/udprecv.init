@@ -1,0 +1,24 @@
+#!/bin/sh /etc/rc.common
+
+START=99
+
+DAEMON="/usr/bin/gst-launch-0.10"
+#DAEMON="/sbin/reboot"
+
+config_udprecv() {
+
+	local args=""
+
+	args="udpsrc port=5000 buffer-size=1500 ! ""application/x-rtp, media=audio, clock-rate=48000, encoding-name=CELT, encoding-params=(string)2, frame-size=480, payload=96"" ! gstrtpjitterbuffer latency=150 drop-on-latency=true mode=2 ! rtpceltdepay ! celtdec ! audio/x-raw-int,rate=48000, channels=2 ! rgvolume ! equalizer-nbands ! audioconvert ! volume volume=1 ! alsasink sync=false"
+#	args="-d 300"
+
+	service_start $DAEMON $args
+}
+
+start() {
+	config_udprecv
+}
+
+stop() {
+	service_stop $DAEMON
+}

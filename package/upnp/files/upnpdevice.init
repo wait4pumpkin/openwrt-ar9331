@@ -1,0 +1,24 @@
+#!/bin/sh /etc/rc.common
+
+START=71
+
+start_stop() {
+
+	if [ ! -f /etc/webxml/mediaconfig ]; then
+		touch /etc/webxml/mediaconfig
+		echo "volume=0" >/etc/webxml/mediaconfig
+	fi
+	start-stop-daemon $1 -b -m -p /var/run/upnpdevice.pid -x /sbin/upnpdevice
+}
+
+start() {
+	start_stop -S
+}
+
+reload() {
+	return
+}
+
+stop() {
+	start_stop -K
+}

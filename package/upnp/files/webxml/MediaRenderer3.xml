@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root xmlns="urn:schemas-upnp-org:device-1-0">
+	<specVersion>
+		<major>1</major>
+		<minor>0</minor>
+	</specVersion>
+
+	<!--- <URLBase>base URL for all relative URLs</URLBase> -->
+
+	<device>
+		<deviceType>urn:schemas-upnp-org:device:MediaRenderer:3</deviceType>
+		<friendlyName>Haiya-Music</friendlyName>
+		<manufacturer>Pumpkin</manufacturer>
+		<manufacturerURL>http://www.pityboy.com</manufacturerURL>
+		<modelDescription>Wait 4 Pumpkin</modelDescription>
+		<modelName>Media Renderer</modelName>
+		<modelNumber>1.0</modelNumber>
+		<modelURL>http://www.pityboy.com</modelURL>
+		<!--- <serialNumber>manufacturer's serial number</serialNumber> -->
+		<UDN>uuid:cc93d8e6-6b8b-4f60-87ca-228c36b5b0e8</UDN>
+		<!---
+		<UPC>Universal Product Code</UPC> 
+		<iconList>
+			<icon>
+				<mimetype>image/format</mimetype>
+				<width>horizontal pixels</width>
+				<height>vertical pixels</height>
+				<depth>color depth</depth>
+				<url>URL to icon</url>
+			</icon>
+		</iconList>
+		-->
+		<serviceList>
+			<service>
+				<serviceType>urn:schemas-upnp-org:service:RenderingControl:3</serviceType>
+				<serviceId>urn:upnp-org:serviceId:RenderingControl</serviceId>
+				<SCPDURL>/RenderingControl3.xml</SCPDURL>
+				<controlURL>/RenderingControl/Control</controlURL>
+				<eventSubURL>/RenderingControl/Event</eventSubURL>
+			</service>
+			<service>
+				<serviceType>urn:schemas-upnp-org:service:ConnectionManager:3</serviceType>
+				<serviceId>urn:upnp-org:serviceId:ConnectionManager</serviceId>
+				<SCPDURL>/ConnectionManager3.xml</SCPDURL>
+				<controlURL>/ConnectionManager/Control</controlURL>
+				<eventSubURL>/ConnectionManager/Event</eventSubURL>
+			</service>
+			<service>
+				<serviceType>urn:schemas-upnp-org:service:AVTransport:3</serviceType>
+				<serviceId>urn:upnp-org:serviceId:AVTransport</serviceId>
+				<SCPDURL>/AVTransport3.xml</SCPDURL>
+				<controlURL>/AVTransport/Control</controlURL>
+				<eventSubURL>/AVTransport/Event</eventSubURL>
+			</service>
+		</serviceList>
+		<!--- <presentationURL>URL for presentation</presentationURL> -->
+	</device>
+</root>
+
