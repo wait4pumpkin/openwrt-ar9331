@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+<root xmlns="urn:schemas-upnp-org:device-1-0">
+	<specVersion>
+		<major>1</major>
+		<minor>0</minor>
+	</specVersion>
+
+	<URLBase>base URL for all relative URLs</URLBase>
+
+	<device>
+		<deviceType>urn:schemas-upnp-org:device:MediaRenderer:1</deviceType>
+		<friendlyName>Pumpkin's Player</friendlyName>
+		<manufacturer>wait4pumpkin</manufacturer>
+		<manufacturerURL>http://www.pityboy.com</manufacturerURL>
+		<modelDescription>UPnP Music Renderer</modelDescription>
+		<modelName>Music Player</modelName>
+		<modelNumber>1.0</modelNumber>
+		<modelURL>http://www.pityboy.com</modelURL>
+		<serialNumber>manufacturer's serial number</serialNumber>
+		<UDN>uuid:UUID</UDN>
+		<UPC>Universal Product Code</UPC>
+		<iconList>
+			<icon>
+				<mimetype>image/format</mimetype>
+				<width>horizontal pixels</width>
+				<height>vertical pixels</height> 
+				<depth>color depth</depth>
+				<url>URL to icon</url>
+			</icon>
+		</iconList>
+		<serviceList>
+			<service> 
+				<serviceType>urn:schemas-upnp-org:service:RenderingControl:1</serviceType> 
+				<serviceId>urn:upnp-org:serviceId:RenderingControl</serviceId> 
+				<SCPDURL>/RenderingControl1.xml</SCPDURL>
+				<controlURL>/RenderingControl/Control</controlURL>
+				<eventSubURL>/RenderingControl/Event</eventSubURL>
+			</service> 
+			<service>
+				<serviceType>urn:schemas-upnp- org:service:ConnectionManager:1</serviceType>
+				<serviceId>urn:upnp-org:serviceId:ConnectionManager</serviceId> 
+				<SCPDURL>/ConnectionManager1.xml</SCPDURL>
+				<controlURL>/ConnectionManager/Control</controlURL>
+				<eventSubURL>/ConnectionManager/Event</eventSubURL>
+			</service> 
+			<service>
+				<serviceType>urn:schemas-upnp-org:service:AVTransport:1</serviceType> 
+				<serviceId>urn:upnp-org:serviceId:AVTransport</serviceId>
+				<SCPDURL>/AVTransport1.xml</SCPDURL>
+				<controlURL>/AVTransport/Control</controlURL>
+				<eventSubURL>/AVTransport/Event</eventSubURL>
+			</service>
+		</serviceList>
+		<presentationURL>URL for presentation</presentationURL> 
+	</device>
+</root>
