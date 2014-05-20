@@ -1,1 +1,0 @@
-/home/pumpkin/project/9331/openwrt/trunk/package/upnp/src/build/CMakeFiles/upnpdevice.dir
