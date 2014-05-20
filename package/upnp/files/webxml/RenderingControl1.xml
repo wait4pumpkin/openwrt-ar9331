@@ -179,44 +179,6 @@
 				</argument>
 			</argumentList>
 		</action>
-		<action>
-			<name>GetLoudness</name>
-			<argumentList>
-				<argument>
-					<name>InstanceID</name>
-					<direction>in</direction>
-					<relatedStateVariable>A_ARG_TYPE_InstanceID</relatedStateVariable>
-				</argument>
-				<argument>
-					<name>Channel</name>
-					<direction>in</direction>
-					<relatedStateVariable>A_ARG_TYPE_Channel</relatedStateVariable>
-				</argument>
-				<argument>
-					<name>CurrentLoudness</name> <direction>out</direction> <relatedStateVariable>Loudness</relatedStateVariable>
-				</argument>
-			</argumentList>
-		</action>
-		<action>
-			<name>SetLoudness</name>
-			<argumentList>
-				<argument>
-					<name>InstanceID</name>
-					<direction>in</direction>
-					<relatedStateVariable>A_ARG_TYPE_InstanceID</relatedStateVariable>
-				</argument>
-				<argument>
-					<name>Channel</name>
-					<direction>in</direction>
-					<relatedStateVariable>A_ARG_TYPE_Channel</relatedStateVariable>
-				</argument>
-				<argument>
-					<name>DesiredLoudness</name>
-					<direction>in</direction>
-					<relatedStateVariable>Loudness</relatedStateVariable>
-				</argument>
-			</argumentList>
-		</action>
 	</actionList>
 
 	<serviceStateTable>
@@ -250,10 +212,6 @@
 				<step>Vendor defined</step>
 			</allowedValueRange>
 		</stateVariable>
-		<stateVariable sendEvents="no">
-			<name>Loudness</name>
-			<dataType>boolean</dataType>
-		</stateVariable> 
 		<stateVariable sendEvents="no">
 			<name>A_ARG_TYPE_Channel</name>
 			<dataType>string</dataType>

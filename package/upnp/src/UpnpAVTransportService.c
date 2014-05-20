@@ -2,15 +2,6 @@
 
 #include "UpnpMediaPlayer.h"
 
-#include <asm-generic/ioctl.h>
-#include <asm/types.h>
-#include <signal.h>
-
-extern gint irDev;
-
-#define IO_LOW			_IOW('i', 0x00000027, __u32)
-#define IO_HIGH			_IOW('i', 0x00000028, __u32)
-
 G_DEFINE_TYPE(UpnpAVTransportService, upnpAVTransportService, G_TYPE_OBJECT);
 
 void create_notify(GUPnPService *service, char* variable, const gchar* value, const gchar* channel );
@@ -19,26 +10,26 @@ static void upnpAVTransportServiceDispose(GObject *object);
 static void upnpAVTransportServiceGetProperty(GObject *object, guint propertyID, GValue *value, GParamSpec *pspec);
 static void upnpAVTransportServiceSetProperty(GObject *object, guint propertyID, const GValue *value, GParamSpec *pspec);
 
-
-/* action function */
 static void setAVTransportURI(GUPnPService *service, GUPnPServiceAction *action, gpointer userData);
-
+static void setNextAVTransportURI(GUPnPService *service, GUPnPServiceAction *action, gpointer userData);
 static void getMediaInfo(GUPnPService *service, GUPnPServiceAction *action, gpointer userData);
-/* GetMediaInfo_Ext */static void getMediaInfoExt(GUPnPService *service, GUPnPServiceAction *action, gpointer userData);
 static void getTransportInfo(GUPnPService *service, GUPnPServiceAction *action, gpointer userData);
 static void getPositionInfo(GUPnPService *service, GUPnPServiceAction *action, gpointer userData);
 static void getDeviceCapabilities(GUPnPService *service, GUPnPServiceAction *action, gpointer userData);
 static void getTransportSettings(GUPnPService *service, GUPnPServiceAction *action, gpointer userData);
 static void stop(GUPnPService *service, GUPnPServiceAction *action, gpointer userData);
 static void play(GUPnPService *service, GUPnPServiceAction *action, gpointer userData);
-/* optional */static void pauses(GUPnPService *service, GUPnPServiceAction *action, gpointer userData);
+static void pause(GUPnPService *service, GUPnPServiceAction *action, gpointer userData);
+static void record(GUPnPService *service, GUPnPServiceAction *action, gpointer userData);
 static void seek(GUPnPService *service, GUPnPServiceAction *action, gpointer userData);
+static void next(GUPnPService *service, GUPnPServiceAction *action, gpointer userData);
+static void previous(GUPnPService *service, GUPnPServiceAction *action, gpointer userData);
+static void setPlayMode(GUPnPService *service, GUPnPServiceAction *action, gpointer userData);
+static void setRecordQualityMode(GUPnPService *service, GUPnPServiceAction *action, gpointer userData);
+static void getCurrentTransportActions(GUPnPService *service, GUPnPServiceAction *action, gpointer userData);
 
-/* query function */
-static void queryLastChange(GUPnPService *service, char *variable, GValue *value, gpointer userData);
 static void queryTransportState(GUPnPService *service, char *variable, GValue *value, gpointer userData);
 static void queryTransportStatus(GUPnPService *service, char *variable, GValue *value, gpointer userData);
-static void queryCurrentMediaCategory(GUPnPService *service, char *variable, GValue *value, gpointer userData);
 static void queryPlaybackStorageMedium(GUPnPService *service, char *variable, GValue *value, gpointer userData);
 static void queryRecordStorageMedium(GUPnPService *service, char *variable, GValue *value, gpointer userData);
 static void queryPossiblePlaybackStorageMedia(GUPnPService *service, char *variable, GValue *value, gpointer userData);
@@ -62,12 +53,14 @@ static void queryRelativeTimePosition(GUPnPService *service, char *variable, GVa
 static void queryAbsoluteTimePosition(GUPnPService *service, char *variable, GValue *value, gpointer userData);
 static void queryRelativeCounterPosition(GUPnPService *service, char *variable, GValue *value, gpointer userData);
 static void queryAbsoluteCounterPosition(GUPnPService *service, char *variable, GValue *value, gpointer userData);
-//static void queryLastChange(GUPnPService *service, char *variable, GValue *value, gpointer userData);
+static void queryCurrentTransportActions(GUPnPService *service, char *variable, GValue *value, gpointer userData);
+static void queryLastChange(GUPnPService *service, char *variable, GValue *value, gpointer userData);
 static void querySeekMode(GUPnPService *service, char *variable, GValue *value, gpointer userData);
 static void querySeekTarget(GUPnPService *service, char *variable, GValue *value, gpointer userData);
 static void queryInstanceID(GUPnPService *service, char *variable, GValue *value, gpointer userData);
 
-#define UPNP_AVTRANSPORT_SERVICE_GET_PRIVATE(object) (G_TYPE_INSTANCE_GET_PRIVATE((object), UPNP_TYPE_AVTRANSPORT_SERVICE, UpnpAVTransportServicePrivate))
+#define UPNP_AVTRANSPORT_SERVICE_GET_PRIVATE(object) (G_TYPE_INSTANCE_GET_PRIVATE((object), \
+			UPNP_TYPE_AVTRANSPORT_SERVICE, UpnpAVTransportServicePrivate))
  
 enum PROPERTY_AVTRANSPORT_SERVICE {
 	PROPERTY_BASE,
@@ -222,38 +215,47 @@ static void upnpAVTransportService_init(UpnpAVTransportService *self) {
 void upnpAVTransportServiceConnect(UpnpAVTransportService *self) {
 	UpnpAVTransportServicePrivate *priv = UPNP_AVTRANSPORT_SERVICE_GET_PRIVATE(self);
 	
-	priv->service = gupnp_device_info_get_service(GUPNP_DEVICE_INFO(priv->device), "urn:schemas-upnp-org:service:AVTransport:3");
+	priv->service = gupnp_device_info_get_service(GUPNP_DEVICE_INFO(priv->device), "urn:schemas-upnp-org:service:AVTransport:1");
 	if(!priv->service) {
-//		g_printerr("Cannot get AVTransport service\n");
-		
 		exit(EXIT_FAILURE);
 	}
 
 	g_signal_connect(GUPNP_SERVICE(priv->service), "action-invoked::SetAVTransportURI", G_CALLBACK(setAVTransportURI), self);
+	g_signal_connect(GUPNP_SERVICE(priv->service), "action-invoked::SetNextAVTransportURI", G_CALLBACK(setNextAVTransportURI), self);
 	g_signal_connect(GUPNP_SERVICE(priv->service), "action-invoked::GetMediaInfo", G_CALLBACK(getMediaInfo), self);
-	g_signal_connect(GUPNP_SERVICE(priv->service), "action-invoked::GetMediaInfo_Ext", G_CALLBACK(getMediaInfoExt), self);
 	g_signal_connect(GUPNP_SERVICE(priv->service), "action-invoked::GetTransportInfo", G_CALLBACK(getTransportInfo), self);
-	g_signal_connect(GUPNP_SERVICE(priv->service), "action-invoked::GetPositionInfo", G_CALLBACK(getPositionInfo), self);
+	g_signal_connect(GUPNP_SERVICE(priv->service), "action-invoked::GetPositionInfo", G_CALLBACK(getPositionInfo), self);	
 	g_signal_connect(GUPNP_SERVICE(priv->service), "action-invoked::GetDeviceCapabilities", G_CALLBACK(getDeviceCapabilities), self);
 	g_signal_connect(GUPNP_SERVICE(priv->service), "action-invoked::GetTransportSettings", G_CALLBACK(getTransportSettings), self);
 	g_signal_connect(GUPNP_SERVICE(priv->service), "action-invoked::Stop", G_CALLBACK(stop), self);
 	g_signal_connect(GUPNP_SERVICE(priv->service), "action-invoked::Play", G_CALLBACK(play), self);
+	g_signal_connect(GUPNP_SERVICE(priv->service), "action-invoked::Pause", G_CALLBACK(pause), self);
+	g_signal_connect(GUPNP_SERVICE(priv->service), "action-invoked::Record", G_CALLBACK(record), self);
 	g_signal_connect(GUPNP_SERVICE(priv->service), "action-invoked::Seek", G_CALLBACK(seek), self);
-	/* optional */g_signal_connect(GUPNP_SERVICE(priv->service), "action-invoked::Pause", G_CALLBACK(pauses), self);
+	g_signal_connect(GUPNP_SERVICE(priv->service), "action-invoked::Next", G_CALLBACK(next), self);
+	g_signal_connect(GUPNP_SERVICE(priv->service), "action-invoked::Previous", G_CALLBACK(previous), self);
+	g_signal_connect(GUPNP_SERVICE(priv->service), "action-invoked::SetPlayMode", G_CALLBACK(setPlayMode), self);
+	g_signal_connect(GUPNP_SERVICE(priv->service), "action-invoked::SetRecordQualityMode", G_CALLBACK(setRecordQualityMode), self);
+	g_signal_connect(GUPNP_SERVICE(priv->service), "action-invoked::getCurrentTransportActions", 
+					 G_CALLBACK(getCurrentTransportActions), self);
 
-	g_signal_connect(GUPNP_SERVICE(priv->service), "query-variable::LastChange", G_CALLBACK(queryLastChange), self);
 	g_signal_connect(GUPNP_SERVICE(priv->service), "query-variable::TransportState", G_CALLBACK(queryTransportState), self);
 	g_signal_connect(GUPNP_SERVICE(priv->service), "query-variable::TransportStatus", G_CALLBACK(queryTransportStatus), self);
-	g_signal_connect(GUPNP_SERVICE(priv->service), "query-variable::CurrentMediaCategory", G_CALLBACK(queryCurrentMediaCategory), self);
-	g_signal_connect(GUPNP_SERVICE(priv->service), "query-variable::PlaybackStorageMedium", G_CALLBACK(queryPlaybackStorageMedium), self);
+	g_signal_connect(GUPNP_SERVICE(priv->service), "query-variable::PlaybackStorageMedium",
+					 G_CALLBACK(queryPlaybackStorageMedium), self);
 	g_signal_connect(GUPNP_SERVICE(priv->service), "query-variable::RecordStorageMedium", G_CALLBACK(queryRecordStorageMedium), self);
-	g_signal_connect(GUPNP_SERVICE(priv->service), "query-variable::PossiblePlaybackStorageMedia", G_CALLBACK(queryPossiblePlaybackStorageMedia), self);
-	g_signal_connect(GUPNP_SERVICE(priv->service), "query-variable::PossibleRecordStorageMedia", G_CALLBACK(queryPossibleRecordStorageMedia), self);
+	g_signal_connect(GUPNP_SERVICE(priv->service), "query-variable::PossiblePlaybackStorageMedia", 
+					 G_CALLBACK(queryPossiblePlaybackStorageMedia), self);
+	g_signal_connect(GUPNP_SERVICE(priv->service), "query-variable::PossibleRecordStorageMedia", 
+					 G_CALLBACK(queryPossibleRecordStorageMedia), self);
 	g_signal_connect(GUPNP_SERVICE(priv->service), "query-variable::CurrentPlayMode", G_CALLBACK(queryCurrentPlayMode), self);
 	g_signal_connect(GUPNP_SERVICE(priv->service), "query-variable::TransportPlaySpeed", G_CALLBACK(queryTransportPlaySpeed), self);
-	g_signal_connect(GUPNP_SERVICE(priv->service), "query-variable::RecordMediumWriteStatus", G_CALLBACK(queryRecordMediumWriteStatus), self);
-	g_signal_connect(GUPNP_SERVICE(priv->service), "query-variable::CurrentRecordQualityMode", G_CALLBACK(queryCurrentRecordQualityMode), self);
-	g_signal_connect(GUPNP_SERVICE(priv->service), "query-variable::PossibleRecordQualityModes", G_CALLBACK(queryPossibleRecordQualityModes), self);
+	g_signal_connect(GUPNP_SERVICE(priv->service), "query-variable::RecordMediumWriteStatus", 
+					 G_CALLBACK(queryRecordMediumWriteStatus), self);
+	g_signal_connect(GUPNP_SERVICE(priv->service), "query-variable::CurrentRecordQualityMode", 
+					 G_CALLBACK(queryCurrentRecordQualityMode), self);
+	g_signal_connect(GUPNP_SERVICE(priv->service), "query-variable::PossibleRecordQualityModes", 
+					 G_CALLBACK(queryPossibleRecordQualityModes), self);
 	g_signal_connect(GUPNP_SERVICE(priv->service), "query-variable::NumberOfTracks", G_CALLBACK(queryNumberOfTracks), self);
 	g_signal_connect(GUPNP_SERVICE(priv->service), "query-variable::CurrentTrack", G_CALLBACK(queryCurrentTrack), self);
 	g_signal_connect(GUPNP_SERVICE(priv->service), "query-variable::CurrentTrackDuration", G_CALLBACK(queryCurrentTrackDuration), self);
@@ -261,17 +263,23 @@ void upnpAVTransportServiceConnect(UpnpAVTransportService *self) {
 	g_signal_connect(GUPNP_SERVICE(priv->service), "query-variable::CurrentTrackMetaData", G_CALLBACK(queryCurrentTrackMetaData), self);
 	g_signal_connect(GUPNP_SERVICE(priv->service), "query-variable::CurrentTrackURI", G_CALLBACK(queryCurrentTrackURI), self);
 	g_signal_connect(GUPNP_SERVICE(priv->service), "query-variable::AVTransportURI", G_CALLBACK(queryAVTransportURI), self);
-	g_signal_connect(GUPNP_SERVICE(priv->service), "query-variable::AVTransportURIMetaData", G_CALLBACK(queryAVTransportURIMetaData), self);
+	g_signal_connect(GUPNP_SERVICE(priv->service), "query-variable::AVTransportURIMetaData", 
+					 G_CALLBACK(queryAVTransportURIMetaData), self);
 	g_signal_connect(GUPNP_SERVICE(priv->service), "query-variable::NextAVTransportURI", G_CALLBACK(queryNextAVTransportURI), self);
-	g_signal_connect(GUPNP_SERVICE(priv->service), "query-variable::NextAVTransportURIMetaData", G_CALLBACK(queryNextAVTransportURIMetaData), self);
+	g_signal_connect(GUPNP_SERVICE(priv->service), "query-variable::NextAVTransportURIMetaData", 
+					 G_CALLBACK(queryNextAVTransportURIMetaData), self);
 	g_signal_connect(GUPNP_SERVICE(priv->service), "query-variable::RelativeTimePosition", G_CALLBACK(queryRelativeTimePosition), self);
 	g_signal_connect(GUPNP_SERVICE(priv->service), "query-variable::AbsoluteTimePosition", G_CALLBACK(queryAbsoluteTimePosition), self);
-	g_signal_connect(GUPNP_SERVICE(priv->service), "query-variable::RelativeCounterPosition", G_CALLBACK(queryRelativeCounterPosition), self);
-	g_signal_connect(GUPNP_SERVICE(priv->service), "query-variable::AbsoluteCounterPosition", G_CALLBACK(queryAbsoluteCounterPosition), self);
+	g_signal_connect(GUPNP_SERVICE(priv->service), "query-variable::RelativeCounterPosition", 
+					 G_CALLBACK(queryRelativeCounterPosition), self);
+	g_signal_connect(GUPNP_SERVICE(priv->service), "query-variable::AbsoluteCounterPosition", 
+					 G_CALLBACK(queryAbsoluteCounterPosition), self);
+	g_signal_connect(GUPNP_SERVICE(priv->service), "query-variable::CurrentTransportActions", 
+					 G_CALLBACK(queryCurrentTransportActions), self);
+	g_signal_connect(GUPNP_SERVICE(priv->service), "query-variable::LastChange", G_CALLBACK(queryLastChange), self);
 	g_signal_connect(GUPNP_SERVICE(priv->service), "query-variable::A_ARG_TYPE_SeekMode", G_CALLBACK(querySeekMode), self);
 	g_signal_connect(GUPNP_SERVICE(priv->service), "query-variable::A_ARG_TYPE_SeekTarget", G_CALLBACK(querySeekTarget), self);
 	g_signal_connect(GUPNP_SERVICE(priv->service), "query-variable::A_ARG_TYPE_InstanceID", G_CALLBACK(queryInstanceID), self);
-
 }
 
 static void upnpAVTransportServiceDispose(GObject *object) {

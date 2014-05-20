@@ -8,7 +8,6 @@ static void upnpConnectionManagerServiceDispose(GObject *object);
 static void upnpConnectionManagerServiceGetProperty(GObject *object, guint propertyID, GValue *value, GParamSpec *pspec);
 static void upnpConnectionManagerServiceSetProperty(GObject *object, guint propertyID, const GValue *value, GParamSpec *pspec);
 
-
 /* action connect function */
 static void getProtocolInfo(GUPnPService *service, GUPnPServiceAction *action, gpointer userData);
 static void getCurrentConnectionIDs(GUPnPService *service, GUPnPServiceAction *action, gpointer userData);
@@ -32,7 +31,8 @@ static void queryCurrentConnectionIDs(GUPnPService *service, char *variable, GVa
 ///* optional */static void queryResult(GUPnPService *service, char *variable, GValue *value, gpointer userData);
 ///* optional */static void queryRenderingInfoList(GUPnPService *service, char *variable, GValue *value, gpointer userData);
 
-#define UPNP_CONNECTION_MANAGER_SERVICE_GET_PRIVATE(object) (G_TYPE_INSTANCE_GET_PRIVATE((object), UPNP_TYPE_CONNECTION_MANAGER_SERVICE, UpnpConnectionManagerServicePrivate))
+#define UPNP_CONNECTION_MANAGER_SERVICE_GET_PRIVATE(object) (G_TYPE_INSTANCE_GET_PRIVATE((object), \
+			UPNP_TYPE_CONNECTION_MANAGER_SERVICE, UpnpConnectionManagerServicePrivate))
  
 enum PROPERTY_CONNECTION_MANAGER_SERVICE {
 	PROPERTY_BASE,
