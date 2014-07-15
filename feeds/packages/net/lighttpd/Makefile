@@ -137,7 +137,9 @@ define BuildPlugin
 	$(INSTALL_DIR) $$(1)/usr/lib/lighttpd
 	$(CP) $(PKG_INSTALL_DIR)/usr/lib/lighttpd/mod_$(1).so $$(1)/usr/lib/lighttpd
 	$(INSTALL_DIR) $$(1)/etc/lighttpd/conf.d
-	if [ -f $(PKG_BUILD_DIR)/doc/config/conf.d/$(1).conf ]; then \
+	if [ -f ./files/$(1).conf ]; then \
+		$(CP) ./files/$(1).conf $$(1)/etc/lighttpd/conf.d/$(4)-$(1).conf ; \
+	elif [ -f $(PKG_BUILD_DIR)/doc/config/conf.d/$(1).conf ]; then \
 		$(CP) $(PKG_BUILD_DIR)/doc/config/conf.d/$(1).conf $$(1)/etc/lighttpd/conf.d/$(4)-$(1).conf ; \
 	else \
 		echo 'server.modules += ( "mod_$(1)" )' > $$(1)/etc/lighttpd/conf.d/$(4)-$(1).conf ; \
